@@ -43,6 +43,7 @@ def add_reservation(passenger_id, flight_id, booking_date, reservation_status):
     """
     return execute_query(query, (int(passenger_id), int(flight_id), str(booking_date), reservation_status.strip()))
 
+<<<<<<< Updated upstream
 def update_reservation_status(reservation_id, reservation_status):
     """Update status of a reservation."""
     query = """
@@ -51,6 +52,170 @@ def update_reservation_status(reservation_id, reservation_status):
         WHERE reservation_id = %s
     """
     return execute_query(query, (reservation_status.strip(), int(reservation_id)))
+=======
+    connection = get_connection()
+
+    if connection is None:
+        return False
+
+    try:
+        cursor = connection.cursor()
+
+        query = """
+            INSERT INTO Reservation (
+                passenger_id,
+                flight_id,
+                booking_date,
+                reservation_status
+            )
+            VALUES (%s, %s, %s, %s)
+        """
+
+        values = (
+            passenger_id,
+            flight_id,
+            booking_date,
+            reservation_status
+        )
+
+        cursor.execute(query, values)
+        connection.commit()
+
+        print("Reservation added successfully.")
+        return True
+
+    except Exception as e:
+        connection.rollback()
+
+        if "Cannot add or update a child row" in str(e):
+            print("Passenger or flight does not exist.")
+        else:
+            print(f"Error adding reservation: {e}")
+
+        return False
+
+    finally:
+        cursor.close()
+        connection.close()
+
+def get_total_reservations_count():
+    connection = get_connection()
+    if connection is None:
+        return 0
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT COUNT(*) as cnt FROM Reservation")
+        res = cursor.fetchone()
+        return res['cnt'] if res else 0
+    except Exception as e:
+        print(f"Error: {e}")
+        return 0
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def get_all_reservations():
+    connection = get_connection()
+
+    if connection is None:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        query = "SELECT * FROM Reservation"
+        cursor.execute(query)
+
+        reservations = cursor.fetchall()
+        return reservations
+
+    except Exception as e:
+        print(f"Error fetching reservations: {e}")
+        return []
+
+    finally:
+        cursor.close()
+        connection.close()
+
+def update_reservation_status(reservation_id, status):
+    connection = get_connection()
+    if connection is None:
+        return False
+    try:
+        cursor = connection.cursor()
+        cursor.execute("UPDATE Reservation SET reservation_status = %s WHERE reservation_id = %s", (status, reservation_id))
+        connection.commit()
+        return True
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def update_reservation(
+    reservation_id,
+    passenger_id,
+    flight_id,
+    booking_date,
+    reservation_status
+):
+    if not passenger_id or not flight_id or not booking_date or not reservation_status:
+        print("All reservation details are required.")
+        return False
+
+    connection = get_connection()
+
+    if connection is None:
+        return False
+
+    try:
+        cursor = connection.cursor()
+
+        query = """
+            UPDATE Reservation
+            SET passenger_id = %s,
+                flight_id = %s,
+                booking_date = %s,
+                reservation_status = %s
+            WHERE reservation_id = %s
+        """
+
+        values = (
+            passenger_id,
+            flight_id,
+            booking_date,
+            reservation_status,
+            reservation_id
+        )
+
+        cursor.execute(query, values)
+
+        if cursor.rowcount == 0:
+            print("Reservation not found.")
+            return False
+
+        connection.commit()
+
+        print("Reservation updated successfully.")
+        return True
+
+    except Exception as e:
+        connection.rollback()
+
+        if "Cannot add or update a child row" in str(e):
+            print("Passenger or flight does not exist.")
+        else:
+            print(f"Error updating reservation: {e}")
+
+        return False
+
+    finally:
+        cursor.close()
+        connection.close()
+>>>>>>> Stashed changes
 
 def delete_reservation(reservation_id):
     """Delete a reservation by ID."""

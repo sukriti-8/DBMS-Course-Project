@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #000000;
+  --bg-card: #0a0a0a;
+  --bg-chip: #1f1f1f;
+  
+  --text-main: #ffffff;
+  --text-muted: #999999;
+  --text-sub: #e7e7e7;
+  
+  --accent-blue: #52a8ff;
+  --success-green: #62c073;
+  --error-fail: #ededed;
+  
+  --border-ring: rgba(255, 255, 255, 0.145);
+  --progress-default: rgba(255, 255, 255, 0.18);
+  
+  --font-inter: 'Inter', sans-serif;
+  --font-geist: 'Geist Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+.headline-fluid {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  letter-spacing: -2px;
+  font-size: clamp(32px, 5vw, 60px);
+  max-width: 752px;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+
+.data-mono {
+  font-family: var(--font-geist);
+  color: var(--text-muted);
+}
+
+/* Buttons */
+.btn-square {
+  background-color: #ffffff;
+  color: #121212;
+  border: none;
+  border-radius: 0px;
+  padding: 8px 12px;
+  font-family: var(--font-inter);
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.btn-square:hover {
+  background-color: #e0e0e0;
+}
+.btn-large {
+  font-size: 20px;
+  padding: 16px 24px;
+}
+
+/* Cards */
+.tech-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-ring);
+  border-radius: 4px; /* Slight radius or 0 if strictly brutalist? Spec says cards are #0a0a0a with 1px ring border */
+  padding: 24px;
+}
+
+/* Status Chip */
+.v-chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-chip);
+  border-radius: 100px;
+  padding: 4px 10px;
+  gap: 6px;
+  font-family: var(--font-geist);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.chip-dot.pass { background-color: var(--success-green); }
+.chip-dot.warn { background-color: var(--text-muted); }
+.chip-dot.fail { background-color: var(--error-fail); }
+
+/* Layout Utilities */
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+.gap-8 { gap: 32px; }
+
+/* Grid */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 56px;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--border-ring);
+  border-bottom: 1px solid var(--border-ring);
+  margin: 0 56px;
+}
+.metrics-cell {
+  border-right: 1px solid var(--border-ring);
+  padding: 32px 24px;
+}
+.metrics-cell:last-child {
+  border-right: none;
+}
+.metric-value {
+  font-family: var(--font-geist);
+  font-size: 56px;
+  letter-spacing: -3.36px;
+  line-height: 1;
+  color: var(--text-main);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.metric-unit {
+  font-size: 24px;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+.metric-label {
+  font-family: var(--font-inter);
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* Header */
+.app-header {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  padding: 0 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+}
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  font-size: 20px;
+}
+.nav-links {
+  display: flex;
+  gap: 32px;
+}
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+}
+
+/* Hero */
+.hero-section {
+  height: 100svh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 56px;
+  background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=2070');
+  background-size: cover;
+  background-position: center;
+}
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.76) 0%, rgba(0,0,0,0) 93.785%);
+  z-index: 1;
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 40px;
+}
+.hero-subtext {
+  font-size: 16px;
+  color: var(--text-sub);
+  margin-top: 16px;
+  margin-bottom: 32px;
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+/* Event Stream Table */
+.event-stream {
+  padding: 56px;
+}
+.event-layout {
+  display: flex;
+  border: 1px solid var(--border-ring);
+  background-color: var(--bg-card);
+}
+.event-sidebar {
+  width: 240px;
+  border-right: 1px solid var(--border-ring);
+  padding: 16px 0;
+  overflow-y: auto;
+  max-height: 500px;
+}
+.event-main {
+  flex: 1;
+}
+.event-header {
+  display: flex;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-ring);
+  background-color: rgba(255,255,255,0.02);
+}
+.event-row {
+  display: flex;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-ring);
+}
+.event-row:last-child {
+  border-bottom: none;
+}
+.col-span { width: 30%; }
+.col-start { flex: 1; }
+.col-duration { width: 20%; text-align: right; }
+
+.sidebar-item {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-geist);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.sidebar-item:hover, .sidebar-item.active {
+  background-color: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+/* Timeline Progress Bar */
+.timeline-container {
+  width: 100%;
+  height: 6px;
+  background-color: transparent;
+  position: relative;
+  margin-top: 6px;
+}
+.timeline-bar {
+  position: absolute;
+  height: 100%;
+  border-radius: 2px;
+  background-color: var(--progress-default);
+}
+.timeline-bar.active {
+  background-color: var(--accent-blue);
+}

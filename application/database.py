@@ -21,16 +21,31 @@ def get_db_connection():
     global _db_mode
     # Try MySQL first
     try:
+<<<<<<< Updated upstream
         conn = mysql.connector.connect(**MYSQL_CONFIG)
         if conn.is_connected():
             _db_mode = 'mysql'
             return conn, 'mysql'
+=======
+        connection = mysql.connector.connect(
+            host="127.0.0.1",
+            port=3306,
+            user="root",
+            password="shinchan@123",
+            database="airline_reservation_db"
+        )
+
+        if connection.is_connected():
+            return connection
+
+>>>>>>> Stashed changes
     except Error as e:
         # Fall back to SQLite gracefully
         pass
     except Exception:
         pass
 
+<<<<<<< Updated upstream
     # SQLite fallback
     db_path = os.path.join(os.path.dirname(__file__), '..', 'database', 'airline_reservation.db')
     db_path = os.path.abspath(db_path)
@@ -225,3 +240,48 @@ def execute_query(query, params=()):
             return last_id
     finally:
         conn.close()
+=======
+    return None
+
+def get_db_connection():
+    return get_connection(), 'mysql'
+
+def fetch_all(query, params=None):
+    conn = get_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, params or ())
+        result = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return result
+    return []
+
+def fetch_one(query, params=None):
+    conn = get_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, params or ())
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return result
+    return None
+
+def execute_query(query, params=None):
+    conn = get_connection()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query, params or ())
+            conn.commit()
+            return True
+        except Error as e:
+            print(f"Error executing query: {e}")
+            conn.rollback()
+            return False
+        finally:
+            cursor.close()
+            conn.close()
+    return False
+>>>>>>> Stashed changes
