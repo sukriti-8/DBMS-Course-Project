@@ -1,6 +1,14 @@
+import os
+import sys
 import datetime
+
 import pandas as pd
 import streamlit as st
+
+# Make the project root available to Python when running on Streamlit Cloud
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from application.database import get_db_connection, fetch_all
 import application.passenger as passenger_service
