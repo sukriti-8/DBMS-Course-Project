@@ -11,10 +11,8 @@ MYSQL_CONFIG = {
     'database': os.getenv('MYSQL_DATABASE', 'airline_reservation_db'),
     'port': int(os.getenv('MYSQL_PORT', 3306))
 }
-
 # Connection mode tracking ('mysql' or 'sqlite')
 _db_mode = None
-
 def get_db_connection():
     """
     Establishes and returns a connection to MySQL database.
