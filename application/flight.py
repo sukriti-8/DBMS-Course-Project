@@ -1,4 +1,58 @@
-from application.database import get_connection
+from application.database import fetch_all, fetch_one, execute_query
+
+
+def get_all_flights():
+    """Retrieve all flight records along with airport and aircraft details."""
+
+    query = """
+        SELECT
+            f.flight_id,
+            f.flight_number,
+            f.aircraft_id,
+            ac.aircraft_model,
+            f.departure_airport_id,
+            dep.airport_code AS departure_code,
+            dep.city AS departure_city,
+            f.arrival_airport_id,
+            arr.airport_code AS arrival_code,
+            arr.city AS arrival_city,
+            f.departure_datetime,
+            f.arrival_datetime,
+            f.status,
+            f.base_fare
+        FROM Flight f
+        JOIN Aircraft ac
+            ON f.aircraft_id = ac.aircraft_id
+        JOIN Airport dep
+            ON f.departure_airport_id = dep.airport_id
+        JOIN Airport arr
+            ON f.arrival_airport_id = arr.airport_id
+        ORDER BY f.flight_id DESC
+    """
+
+    return fetch_all(query)
+
+
+def get_flight_by_id(flight_id):
+    """Retrieve a single flight by ID with full details."""
+
+    query = """
+        SELECT
+            f.*,
+            ac.aircraft_model,
+            dep.airport_code AS departure_code,
+            arr.airport_code AS arrival_code
+        FROM Flight f
+        JOIN Aircraft ac
+            ON f.aircraft_id = ac.aircraft_id
+        JOIN Airport dep
+            ON f.departure_airport_id = dep.airport_id
+        JOIN Airport arr
+            ON f.arrival_airport_id = arr.airport_id
+        WHERE f.flight_id = %s
+    """
+
+    return fetch_one(query, (flight_id,))
 
 
 def add_flight(
@@ -11,6 +65,9 @@ def add_flight(
     status,
     base_fare
 ):
+    """Insert a new flight record."""
+
+    # Validation
     if not flight_number or not aircraft_id or not departure_airport_id or not arrival_airport_id:
         print("Required flight details are missing.")
         return False
@@ -23,33 +80,12 @@ def add_flight(
         print("Arrival time must be after departure time.")
         return False
 
-    if base_fare is None or base_fare < 0:
+    if base_fare is None or float(base_fare) < 0:
         print("Base fare cannot be negative.")
         return False
 
-    connection = get_connection()
-
-    if connection is None:
-        return False
-
-    try:
-        cursor = connection.cursor()
-
-        query = """
-            INSERT INTO Flight (
-                flight_number,
-                aircraft_id,
-                departure_airport_id,
-                arrival_airport_id,
-                departure_datetime,
-                arrival_datetime,
-                status,
-                base_fare
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
-
-        values = (
+    query = """
+        INSERT INTO Flight (
             flight_number,
             aircraft_id,
             departure_airport_id,
@@ -59,16 +95,25 @@ def add_flight(
             status,
             base_fare
         )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
 
-        cursor.execute(query, values)
-        connection.commit()
-
-        print("Flight added successfully.")
-        return True
+    try:
+        return execute_query(
+            query,
+            (
+                flight_number.strip(),
+                int(aircraft_id),
+                int(departure_airport_id),
+                int(arrival_airport_id),
+                str(departure_datetime),
+                str(arrival_datetime),
+                status.strip(),
+                float(base_fare)
+            )
+        )
 
     except Exception as e:
-        connection.rollback()
-
         if "Duplicate entry" in str(e):
             print("Flight number already exists.")
         else:
@@ -76,32 +121,14 @@ def add_flight(
 
         return False
 
-    finally:
-        cursor.close()
-        connection.close()
 
 def get_flights():
-    connection = get_connection()
+    """Retrieve all flights."""
 
-    if connection is None:
-        return []
+    query = "SELECT * FROM Flight ORDER BY flight_id DESC"
 
-    try:
-        cursor = connection.cursor(dictionary=True)
+    return fetch_all(query)
 
-        query = "SELECT * FROM Flight"
-        cursor.execute(query)
-
-        flights = cursor.fetchall()
-        return flights
-
-    except Exception as e:
-        print(f"Error fetching flights: {e}")
-        return []
-
-    finally:
-        cursor.close()
-        connection.close()
 
 def update_flight(
     flight_id,
@@ -114,6 +141,9 @@ def update_flight(
     status,
     base_fare
 ):
+    """Update an existing flight record."""
+
+    # Validation
     if not flight_number or not aircraft_id or not departure_airport_id or not arrival_airport_id:
         print("Required flight details are missing.")
         return False
@@ -126,57 +156,41 @@ def update_flight(
         print("Arrival time must be after departure time.")
         return False
 
-    if base_fare is None or base_fare < 0:
+    if base_fare is None or float(base_fare) < 0:
         print("Base fare cannot be negative.")
         return False
 
-    connection = get_connection()
-
-    if connection is None:
-        return False
+    query = """
+        UPDATE Flight
+        SET
+            flight_number = %s,
+            aircraft_id = %s,
+            departure_airport_id = %s,
+            arrival_airport_id = %s,
+            departure_datetime = %s,
+            arrival_datetime = %s,
+            status = %s,
+            base_fare = %s
+        WHERE flight_id = %s
+    """
 
     try:
-        cursor = connection.cursor()
-
-        query = """
-            UPDATE Flight
-            SET flight_number = %s,
-                aircraft_id = %s,
-                departure_airport_id = %s,
-                arrival_airport_id = %s,
-                departure_datetime = %s,
-                arrival_datetime = %s,
-                status = %s,
-                base_fare = %s
-            WHERE flight_id = %s
-        """
-
-        values = (
-            flight_number,
-            aircraft_id,
-            departure_airport_id,
-            arrival_airport_id,
-            departure_datetime,
-            arrival_datetime,
-            status,
-            base_fare,
-            flight_id
+        return execute_query(
+            query,
+            (
+                flight_number.strip(),
+                int(aircraft_id),
+                int(departure_airport_id),
+                int(arrival_airport_id),
+                str(departure_datetime),
+                str(arrival_datetime),
+                status.strip(),
+                float(base_fare),
+                int(flight_id)
+            )
         )
 
-        cursor.execute(query, values)
-
-        if cursor.rowcount == 0:
-            print("Flight not found.")
-            return False
-
-        connection.commit()
-
-        print("Flight updated successfully.")
-        return True
-
     except Exception as e:
-        connection.rollback()
-
         if "Duplicate entry" in str(e):
             print("Flight number already exists.")
         else:
@@ -184,36 +198,38 @@ def update_flight(
 
         return False
 
-    finally:
-        cursor.close()
-        connection.close()
 
 def delete_flight(flight_id):
-    connection = get_connection()
+    """Delete a flight by ID."""
 
-    if connection is None:
-        return False
+    query = "DELETE FROM Flight WHERE flight_id = %s"
 
     try:
-        cursor = connection.cursor()
-
-        query = "DELETE FROM Flight WHERE flight_id = %s"
-        cursor.execute(query, (flight_id,))
-
-        if cursor.rowcount == 0:
-            print("Flight not found.")
-            return False
-
-        connection.commit()
-
-        print("Flight deleted successfully.")
-        return True
+        return execute_query(query, (int(flight_id),))
 
     except Exception as e:
-        connection.rollback()
         print(f"Error deleting flight: {e}")
         return False
 
-    finally:
-        cursor.close()
-        connection.close()
+
+def get_total_flights_count():
+    """Returns total flight count."""
+
+    query = "SELECT COUNT(*) AS count FROM Flight"
+
+    result = fetch_one(query)
+
+    return result["count"] if result else 0
+
+
+def get_average_base_fare():
+    """Returns average base fare of flights."""
+
+    query = "SELECT AVG(base_fare) AS avg_fare FROM Flight"
+
+    result = fetch_one(query)
+
+    if result and result["avg_fare"] is not None:
+        return round(float(result["avg_fare"]), 2)
+
+    return 0.0
