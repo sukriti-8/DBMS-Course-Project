@@ -11,9 +11,9 @@ from mysql.connector import Error
 MYSQL_CONFIG = {
     "host": os.getenv("MYSQL_HOST", "127.0.0.1"),
     "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", "shinchan@123"),
+    "password": os.getenv("MYSQL_PASSWORD", ""),
     "database": os.getenv("MYSQL_DATABASE", "airline_reservation_db"),
-    "port": int(os.getenv("MYSQL_PORT", 3306)),
+    "port": int(os.getenv("MYSQL_PORT", "3306")),
 }
 
 
@@ -41,17 +41,20 @@ def get_db_connection():
     # Try MySQL first
     # --------------------------------------------------------
     try:
-        conn = mysql.connector.connect(**MYSQL_CONFIG)
+        conn = mysql.connector.connect(
+            **MYSQL_CONFIG,
+            connection_timeout=5
+        )
 
         if conn.is_connected():
             _db_mode = "mysql"
             return conn, "mysql"
 
-    except Error:
-        pass
+    except Error as e:
+        print(f"MySQL connection error: {e}")
 
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Database connection error: {e}")
 
     # --------------------------------------------------------
     # SQLite fallback
@@ -284,25 +287,16 @@ def fetch_all(query, params=()):
 
     try:
         if mode == "sqlite":
-
             query_mod = query.replace("%s", "?")
-
             cursor = conn.cursor()
-
             cursor.execute(query_mod, params)
-
             rows = cursor.fetchall()
-
             return [dict(row) for row in rows]
 
         else:
-
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute(query, params)
-
             rows = cursor.fetchall()
-
             return rows
 
     finally:
@@ -322,25 +316,16 @@ def fetch_one(query, params=()):
 
     try:
         if mode == "sqlite":
-
             query_mod = query.replace("%s", "?")
-
             cursor = conn.cursor()
-
             cursor.execute(query_mod, params)
-
             row = cursor.fetchone()
-
             return dict(row) if row else None
 
         else:
-
             cursor = conn.cursor(dictionary=True)
-
             cursor.execute(query, params)
-
             row = cursor.fetchone()
-
             return row
 
     finally:
@@ -357,34 +342,28 @@ def execute_query(query, params=()):
 
     Returns:
         - last inserted ID for INSERT
-        - True for successful UPDATE/DELETE without a useful ID
+        - True for successful UPDATE/DELETE
         - False if execution fails
     """
 
     conn, mode = get_db_connection()
-
     cursor = None
 
     try:
-
         if mode == "sqlite":
-
             query_mod = query.replace("%s", "?")
-
             cursor = conn.cursor()
-
             cursor.execute(query_mod, params)
-
             conn.commit()
 
-            return cursor.lastrowid if query.strip().upper().startswith("INSERT") else True
+            if query.strip().upper().startswith("INSERT"):
+                return cursor.lastrowid
+
+            return True
 
         else:
-
             cursor = conn.cursor()
-
             cursor.execute(query, params)
-
             conn.commit()
 
             if query.strip().upper().startswith("INSERT"):
@@ -393,15 +372,11 @@ def execute_query(query, params=()):
             return True
 
     except Exception as e:
-
         conn.rollback()
-
         print(f"Database error: {e}")
-
         return False
 
     finally:
-
         if cursor is not None:
             cursor.close()
 

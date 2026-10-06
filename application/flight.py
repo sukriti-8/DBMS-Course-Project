@@ -1,4 +1,3 @@
-
 from application.database import fetch_all, fetch_one, execute_query
 
 
@@ -68,6 +67,23 @@ def add_flight(
 ):
     """Insert a new flight record."""
 
+    # Validation
+    if not flight_number or not aircraft_id or not departure_airport_id or not arrival_airport_id:
+        print("Required flight details are missing.")
+        return False
+
+    if not departure_datetime or not arrival_datetime or not status:
+        print("Required flight details are missing.")
+        return False
+
+    if arrival_datetime <= departure_datetime:
+        print("Arrival time must be after departure time.")
+        return False
+
+    if base_fare is None or float(base_fare) < 0:
+        print("Base fare cannot be negative.")
+        return False
+
     query = """
         INSERT INTO Flight (
             flight_number,
@@ -82,19 +98,36 @@ def add_flight(
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
 
-    return execute_query(
-        query,
-        (
-            flight_number.strip(),
-            int(aircraft_id),
-            int(departure_airport_id),
-            int(arrival_airport_id),
-            str(departure_datetime),
-            str(arrival_datetime),
-            status.strip(),
-            float(base_fare)
+    try:
+        return execute_query(
+            query,
+            (
+                flight_number.strip(),
+                int(aircraft_id),
+                int(departure_airport_id),
+                int(arrival_airport_id),
+                str(departure_datetime),
+                str(arrival_datetime),
+                status.strip(),
+                float(base_fare)
+            )
         )
-    )
+
+    except Exception as e:
+        if "Duplicate entry" in str(e):
+            print("Flight number already exists.")
+        else:
+            print(f"Error adding flight: {e}")
+
+        return False
+
+
+def get_flights():
+    """Retrieve all flights."""
+
+    query = "SELECT * FROM Flight ORDER BY flight_id DESC"
+
+    return fetch_all(query)
 
 
 def update_flight(
@@ -110,6 +143,23 @@ def update_flight(
 ):
     """Update an existing flight record."""
 
+    # Validation
+    if not flight_number or not aircraft_id or not departure_airport_id or not arrival_airport_id:
+        print("Required flight details are missing.")
+        return False
+
+    if not departure_datetime or not arrival_datetime or not status:
+        print("Required flight details are missing.")
+        return False
+
+    if arrival_datetime <= departure_datetime:
+        print("Arrival time must be after departure time.")
+        return False
+
+    if base_fare is None or float(base_fare) < 0:
+        print("Base fare cannot be negative.")
+        return False
+
     query = """
         UPDATE Flight
         SET
@@ -124,20 +174,29 @@ def update_flight(
         WHERE flight_id = %s
     """
 
-    return execute_query(
-        query,
-        (
-            flight_number.strip(),
-            int(aircraft_id),
-            int(departure_airport_id),
-            int(arrival_airport_id),
-            str(departure_datetime),
-            str(arrival_datetime),
-            status.strip(),
-            float(base_fare),
-            int(flight_id)
+    try:
+        return execute_query(
+            query,
+            (
+                flight_number.strip(),
+                int(aircraft_id),
+                int(departure_airport_id),
+                int(arrival_airport_id),
+                str(departure_datetime),
+                str(arrival_datetime),
+                status.strip(),
+                float(base_fare),
+                int(flight_id)
+            )
         )
-    )
+
+    except Exception as e:
+        if "Duplicate entry" in str(e):
+            print("Flight number already exists.")
+        else:
+            print(f"Error updating flight: {e}")
+
+        return False
 
 
 def delete_flight(flight_id):
@@ -145,7 +204,12 @@ def delete_flight(flight_id):
 
     query = "DELETE FROM Flight WHERE flight_id = %s"
 
-    return execute_query(query, (int(flight_id),))
+    try:
+        return execute_query(query, (int(flight_id),))
+
+    except Exception as e:
+        print(f"Error deleting flight: {e}")
+        return False
 
 
 def get_total_flights_count():

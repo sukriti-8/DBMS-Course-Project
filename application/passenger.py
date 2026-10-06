@@ -50,8 +50,8 @@ def get_passenger_by_id(passenger_id):
 def add_passenger(name, email, phone, passport_no):
     """Insert a new passenger record into the database."""
 
-    # Basic validation
     if not name or not email or not phone or not passport_no:
+        print("All passenger details are required.")
         return False
 
     name = name.strip()
@@ -60,6 +60,7 @@ def add_passenger(name, email, phone, passport_no):
     passport_no = passport_no.strip()
 
     if not name or not email or not phone or not passport_no:
+        print("All passenger details are required.")
         return False
 
     query = """
@@ -69,10 +70,19 @@ def add_passenger(name, email, phone, passport_no):
             (%s, %s, %s, %s)
     """
 
-    return execute_query(
-        query,
-        (name, email, phone, passport_no)
-    )
+    try:
+        return execute_query(
+            query,
+            (name, email, phone, passport_no)
+        )
+
+    except Exception as e:
+        if "Duplicate entry" in str(e):
+            print("Email or passport number already exists.")
+        else:
+            print(f"Error adding passenger: {e}")
+
+        return False
 
 
 # ============================================================
@@ -89,6 +99,7 @@ def update_passenger(
     """Update an existing passenger's details."""
 
     if not name or not email or not phone or not passport_no:
+        print("All passenger details are required.")
         return False
 
     name = name.strip()
@@ -97,6 +108,7 @@ def update_passenger(
     passport_no = passport_no.strip()
 
     if not name or not email or not phone or not passport_no:
+        print("All passenger details are required.")
         return False
 
     query = """
@@ -109,16 +121,25 @@ def update_passenger(
         WHERE passenger_id = %s
     """
 
-    return execute_query(
-        query,
-        (
-            name,
-            email,
-            phone,
-            passport_no,
-            passenger_id
+    try:
+        return execute_query(
+            query,
+            (
+                name,
+                email,
+                phone,
+                passport_no,
+                passenger_id
+            )
         )
-    )
+
+    except Exception as e:
+        if "Duplicate entry" in str(e):
+            print("Email or passport number already exists.")
+        else:
+            print(f"Error updating passenger: {e}")
+
+        return False
 
 
 # ============================================================
@@ -133,10 +154,31 @@ def delete_passenger(passenger_id):
         WHERE passenger_id = %s
     """
 
-    return execute_query(
-        query,
-        (passenger_id,)
-    )
+    try:
+        return execute_query(
+            query,
+            (passenger_id,)
+        )
+
+    except Exception as e:
+        print(f"Error deleting passenger: {e}")
+        return False
+
+
+# ============================================================
+# GET PASSENGERS
+# ============================================================
+
+def get_passengers():
+    """Retrieve all passengers."""
+
+    query = """
+        SELECT *
+        FROM Passenger
+        ORDER BY passenger_id DESC
+    """
+
+    return fetch_all(query)
 
 
 # ============================================================
