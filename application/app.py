@@ -24,8 +24,7 @@ import application.aircraft as aircraft_service
 # ============================================================
 
 st.set_page_config(
-    page_title="SkyLine | Airline Reservation System",
-    page_icon="✈️",
+    page_title="AirLine | Airline Reservation System",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -38,75 +37,92 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Outfit', sans-serif;
+    /* General application styling */
+    .main {
+        padding-top: 1rem;
     }
 
+    /* Simple project header */
     .main-header {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%);
-        padding: 24px;
-        border-radius: 16px;
-        color: white;
+        background: #f5f7fa;
+        border: 1px solid #d9dee5;
+        border-left: 5px solid #1f4e79;
+        padding: 22px 24px;
+        border-radius: 4px;
         margin-bottom: 24px;
-        box-shadow: 0 10px 25px -5px rgba(0,0,0,.20);
     }
 
     .main-header h1 {
         margin: 0;
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1f2937;
     }
 
     .main-header p {
-        margin: 6px 0 0;
-        color: #93c5fd;
-        font-size: 1.05rem;
+        margin: 8px 0 0;
+        color: #4b5563;
+        font-size: 1rem;
+        line-height: 1.5;
     }
 
+    /* Simple metric cards */
     .metric-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 14px;
-        padding: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,.05);
+        background: #ffffff;
+        border: 1px solid #d9dee5;
+        border-radius: 4px;
+        padding: 18px;
+        min-height: 105px;
     }
 
     .metric-title {
-        font-size: .9rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #64748b;
+        color: #6b7280;
         text-transform: uppercase;
-        letter-spacing: .5px;
+        letter-spacing: 0.3px;
     }
 
     .metric-value {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #0f172a;
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #1f2937;
         margin-top: 8px;
     }
 
+    /* Database status */
     .db-status {
-        font-size: .85rem;
-        padding: 6px 12px;
-        border-radius: 8px;
+        font-size: 0.85rem;
+        padding: 8px 10px;
+        border-radius: 3px;
         display: inline-block;
         margin-top: 10px;
         font-weight: 500;
     }
 
     .db-mysql {
-        background: #0284c7;
-        color: white;
+        background: #e8f1f8;
+        color: #1f4e79;
+        border: 1px solid #b8ccdc;
     }
 
     .db-sqlite {
-        background: #475569;
-        color: white;
+        background: #f1f3f5;
+        color: #495057;
+        border: 1px solid #ced4da;
     }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 4px;
+    }
+
+    /* Tables */
+    [data-testid="stDataFrame"] {
+        border: 1px solid #d9dee5;
+    }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -145,15 +161,19 @@ def show_table(records, columns=None, rename=None, empty_message="No records fou
     if rename:
         df = df.rename(columns=rename)
 
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+    )
 
 
-def metric_card(title, value, icon):
+def metric_card(title, value):
     st.markdown(
         f"""
         <div class="metric-card">
             <div class="metric-title">{title}</div>
-            <div class="metric-value">{icon} {value}</div>
+            <div class="metric-value">{value}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -175,7 +195,7 @@ def make_passenger_options(passengers):
 def make_flight_options(flights):
     return {
         f"{f['flight_id']} - {f['flight_number']} "
-        f"({f['departure_code']} ➔ {f['arrival_code']})": f["flight_id"]
+        f"({f['departure_code']} to {f['arrival_code']})": f["flight_id"]
         for f in flights or []
     }
 
@@ -214,12 +234,8 @@ DB_ENGINE, DB_ERROR = get_database_status()
 # ============================================================
 
 with st.sidebar:
-    st.image(
-        "https://img.icons8.com/isometric-line/100/airplane-take-off.png",
-        width=70,
-    )
 
-    st.title("SkyLine Management")
+    st.title("AirLine Management")
     st.caption("DBMS Course Project | Team Mithila, Sukriti, Hrishika")
     st.markdown("---")
 
@@ -239,20 +255,23 @@ with st.sidebar:
 
     if DB_ENGINE == "mysql":
         st.markdown(
-            '<div class="db-status db-mysql">⚡ Connected to Live MySQL DB</div>',
+            '<div class="db-status db-mysql">Connected to Live MySQL DB</div>',
             unsafe_allow_html=True,
         )
+
     elif DB_ENGINE == "sqlite":
         st.markdown(
-            '<div class="db-status db-sqlite">📦 Connected to Local SQLite DB</div>',
+            '<div class="db-status db-sqlite">Connected to Local SQLite DB</div>',
             unsafe_allow_html=True,
         )
+
     else:
         st.error("Database connection unavailable.")
+
         if DB_ERROR:
             st.caption(f"Connection error: {DB_ERROR}")
 
-    st.caption("Architecture: Streamlit UI ➜ Python Backend ➜ Database")
+    st.caption("Architecture: Streamlit UI -> Python Backend -> Database")
 
 
 # ============================================================
@@ -278,26 +297,31 @@ st.markdown(
 # ============================================================
 
 if menu_choice == "Dashboard":
-    st.subheader("📊 Executive Overview & Live Metrics")
+
+    st.subheader("Executive Overview & Live Metrics")
 
     # Load the actual records once and derive the dashboard totals from them.
     # This avoids depending on separate COUNT helper functions that may be
     # inconsistent with the service functions used by the CRUD pages.
+
     dashboard_passengers = run_service(
         passenger_service.get_all_passengers,
         default=[],
         error_message="Unable to load passengers",
     )
+
     dashboard_flights = run_service(
         flight_service.get_all_flights,
         default=[],
         error_message="Unable to load flights",
     )
+
     dashboard_reservations = run_service(
         reservation_service.get_all_reservations,
         default=[],
         error_message="Unable to load reservations",
     )
+
     dashboard_payments = run_service(
         payment_service.get_all_payments,
         default=[],
@@ -310,35 +334,47 @@ if menu_choice == "Dashboard":
     total_payments = len(dashboard_payments or [])
 
     fares = []
+
     for flight in dashboard_flights or []:
         try:
             fares.append(float(flight.get("base_fare", 0) or 0))
         except (TypeError, ValueError):
             pass
+
     avg_fare = sum(fares) / len(fares) if fares else 0.0
 
     cols = st.columns(4)
+
     cards = [
-        ("Total Passengers", total_passengers, "👤"),
-        ("Active Flights", total_flights, "✈️"),
-        ("Reservations", total_reservations, "🎫"),
-        ("Payments Processed", total_payments, "💳"),
+        ("Total Passengers", total_passengers),
+        ("Active Flights", total_flights),
+        ("Reservations", total_reservations),
+        ("Payments Processed", total_payments),
     ]
 
-    for col, (title, value, icon) in zip(cols, cards):
+    for col, (title, value) in zip(cols, cards):
         with col:
-            metric_card(title, value, icon)
+            metric_card(title, value)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     left, right = st.columns([3, 2])
 
     with left:
-        st.write("### 👥 Recent Passengers")
+
+        st.write("### Recent Passengers")
+
         passengers = dashboard_passengers
+
         show_table(
             passengers[:10] if passengers else [],
-            columns=["passenger_id", "name", "email", "phone", "passport_no"],
+            columns=[
+                "passenger_id",
+                "name",
+                "email",
+                "phone",
+                "passport_no",
+            ],
             rename={
                 "passenger_id": "ID",
                 "name": "Passenger",
@@ -350,12 +386,15 @@ if menu_choice == "Dashboard":
         )
 
     with right:
-        st.write("### 💳 Payment Method Analytics")
+
+        st.write("### Payment Method Analytics")
+
         pay_summary = run_service(
             payment_service.get_payments_by_method_summary,
             default=[],
             error_message="Unable to load payment analytics",
         )
+
         show_table(
             pay_summary,
             rename={
@@ -365,12 +404,18 @@ if menu_choice == "Dashboard":
             },
             empty_message="No payment analytics available.",
         )
-        st.metric("Average Flight Base Fare", f"₹ {avg_fare:,.2f}")
+
+        st.metric(
+            "Average Flight Base Fare",
+            f"₹ {avg_fare:,.2f}",
+        )
 
     st.markdown("---")
-    st.write("### 🎫 Recent Flight Reservations")
+
+    st.write("### Recent Flight Reservations")
 
     reservations = dashboard_reservations
+
     show_table(
         reservations[:10] if reservations else [],
         columns=[
@@ -396,21 +441,35 @@ if menu_choice == "Dashboard":
 # ============================================================
 
 elif menu_choice == "Passengers":
-    st.subheader("👤 Passenger Directory & Record Management")
+
+    st.subheader("Passenger Directory & Record Management")
 
     tab_view, tab_add, tab_edit, tab_delete = st.tabs(
-        ["📋 View All Passengers", "➕ Add Passenger", "✏️ Edit Passenger", "🗑️ Delete Passenger"]
+        [
+            "View All Passengers",
+            "Add Passenger",
+            "Edit Passenger",
+            "Delete Passenger",
+        ]
     )
 
     with tab_view:
+
         passengers = run_service(
             passenger_service.get_all_passengers,
             default=[],
             error_message="Unable to load passengers",
         )
+
         show_table(
             passengers,
-            columns=["passenger_id", "name", "email", "phone", "passport_no"],
+            columns=[
+                "passenger_id",
+                "name",
+                "email",
+                "phone",
+                "passport_no",
+            ],
             rename={
                 "passenger_id": "Passenger ID",
                 "name": "Name",
@@ -422,22 +481,44 @@ elif menu_choice == "Passengers":
         )
 
     with tab_add:
+
         st.write("#### Register New Passenger")
 
-        with st.form("add_passenger_form", clear_on_submit=True):
+        with st.form(
+            "add_passenger_form",
+            clear_on_submit=True,
+        ):
+
             c1, c2 = st.columns(2)
 
             with c1:
-                name = st.text_input("Full Name *", placeholder="e.g. Rahul Sharma")
-                email = st.text_input("Email Address *", placeholder="e.g. rahul@example.com")
+
+                name = st.text_input(
+                    "Full Name *",
+                    placeholder="e.g. Rahul Sharma",
+                )
+
+                email = st.text_input(
+                    "Email Address *",
+                    placeholder="e.g. rahul@example.com",
+                )
 
             with c2:
-                phone = st.text_input("Phone Number *", placeholder="e.g. 9876543210")
-                passport = st.text_input("Passport Number *", placeholder="e.g. P1234567")
+
+                phone = st.text_input(
+                    "Phone Number *",
+                    placeholder="e.g. 9876543210",
+                )
+
+                passport = st.text_input(
+                    "Passport Number *",
+                    placeholder="e.g. P1234567",
+                )
 
             submitted = st.form_submit_button("Add Passenger")
 
             if submitted:
+
                 name = name.strip()
                 email = email.strip()
                 phone = phone.strip()
@@ -445,13 +526,18 @@ elif menu_choice == "Passengers":
 
                 if not name:
                     st.error("Full Name is required.")
+
                 elif "@" not in email:
                     st.error("Please enter a valid email address.")
+
                 elif not phone:
                     st.error("Phone Number is required.")
+
                 elif not passport:
                     st.error("Passport Number is required.")
+
                 else:
+
                     result = run_service(
                         passenger_service.add_passenger,
                         name,
@@ -461,12 +547,19 @@ elif menu_choice == "Passengers":
                         default=False,
                         error_message="Failed to add passenger",
                     )
+
                     if result:
-                        refresh_success(f"Successfully registered passenger: {name}")
+                        refresh_success(
+                            f"Successfully registered passenger: {name}"
+                        )
                     else:
-                        st.error("Passenger could not be added. Email or passport may already exist.")
+                        st.error(
+                            "Passenger could not be added. "
+                            "Email or passport may already exist."
+                        )
 
     with tab_edit:
+
         st.write("#### Update Passenger Details")
 
         passengers = run_service(
@@ -476,25 +569,50 @@ elif menu_choice == "Passengers":
         )
 
         if not passengers:
+
             st.info("No passengers available to edit.")
+
         else:
+
             options = {
-                f"{p['passenger_id']} - {p['name']} ({p['passport_no']})": p
+                f"{p['passenger_id']} - {p['name']} "
+                f"({p['passport_no']})": p
                 for p in passengers
             }
 
-            selected = st.selectbox("Select Passenger to Update", list(options))
+            selected = st.selectbox(
+                "Select Passenger to Update",
+                list(options),
+            )
+
             passenger = options[selected]
 
             with st.form("update_passenger_form"):
-                u_name = st.text_input("Full Name", value=passenger["name"])
-                u_email = st.text_input("Email Address", value=passenger["email"])
-                u_phone = st.text_input("Phone Number", value=passenger["phone"])
-                u_passport = st.text_input("Passport Number", value=passenger["passport_no"])
+
+                u_name = st.text_input(
+                    "Full Name",
+                    value=passenger["name"],
+                )
+
+                u_email = st.text_input(
+                    "Email Address",
+                    value=passenger["email"],
+                )
+
+                u_phone = st.text_input(
+                    "Phone Number",
+                    value=passenger["phone"],
+                )
+
+                u_passport = st.text_input(
+                    "Passport Number",
+                    value=passenger["passport_no"],
+                )
 
                 submitted = st.form_submit_button("Update Details")
 
                 if submitted:
+
                     result = run_service(
                         passenger_service.update_passenger,
                         passenger["passenger_id"],
@@ -505,12 +623,16 @@ elif menu_choice == "Passengers":
                         default=False,
                         error_message="Error updating passenger",
                     )
+
                     if result:
-                        refresh_success("Passenger details updated successfully!")
+                        refresh_success(
+                            "Passenger details updated successfully!"
+                        )
                     else:
                         st.error("Passenger could not be updated.")
 
     with tab_delete:
+
         st.write("#### Remove Passenger Record")
 
         passengers = run_service(
@@ -520,10 +642,14 @@ elif menu_choice == "Passengers":
         )
 
         if not passengers:
+
             st.info("No passengers available to delete.")
+
         else:
+
             options = {
-                f"{p['passenger_id']} - {p['name']} ({p['passport_no']})": p["passenger_id"]
+                f"{p['passenger_id']} - {p['name']} "
+                f"({p['passport_no']})": p["passenger_id"]
                 for p in passengers
             }
 
@@ -533,15 +659,22 @@ elif menu_choice == "Passengers":
                 key="delete_passenger_select",
             )
 
-            if st.button("Delete Passenger", type="primary"):
+            if st.button(
+                "Delete Passenger",
+                type="primary",
+            ):
+
                 result = run_service(
                     passenger_service.delete_passenger,
                     options[selected],
                     default=False,
                     error_message="Cannot delete passenger",
                 )
+
                 if result:
-                    refresh_success("Passenger deleted successfully!")
+                    refresh_success(
+                        "Passenger deleted successfully!"
+                    )
                 else:
                     st.error(
                         "Passenger could not be deleted. "
@@ -554,10 +687,16 @@ elif menu_choice == "Passengers":
 # ============================================================
 
 elif menu_choice == "Flights":
-    st.subheader("✈️ Flight Schedules & Fleet Operations")
+
+    st.subheader("Flight Schedules & Fleet Operations")
 
     tab_view, tab_add, tab_edit, tab_delete = st.tabs(
-        ["📋 View All Flights", "➕ Schedule Flight", "✏️ Edit Flight", "🗑️ Delete Flight"]
+        [
+            "View All Flights",
+            "Schedule Flight",
+            "Edit Flight",
+            "Delete Flight",
+        ]
     )
 
     airports = run_service(
@@ -565,6 +704,7 @@ elif menu_choice == "Flights":
         default=[],
         error_message="Unable to load airports",
     )
+
     aircrafts = run_service(
         aircraft_service.get_all_aircrafts,
         default=[],
@@ -572,16 +712,19 @@ elif menu_choice == "Flights":
     )
 
     airport_options = {
-        f"{a['airport_code']} - {a['city']} ({a['airport_name']})": a["airport_id"]
+        f"{a['airport_code']} - {a['city']} "
+        f"({a['airport_name']})": a["airport_id"]
         for a in airports or []
     }
 
     aircraft_options = {
-        f"{a['aircraft_model']} (Cap: {a['capacity']})": a["aircraft_id"]
+        f"{a['aircraft_model']} (Cap: {a['capacity']})":
+            a["aircraft_id"]
         for a in aircrafts or []
     }
 
     with tab_view:
+
         flights = run_service(
             flight_service.get_all_flights,
             default=[],
@@ -620,20 +763,43 @@ elif menu_choice == "Flights":
         )
 
     with tab_add:
+
         st.write("#### Schedule New Flight")
 
         if not aircraft_options:
+
             st.warning("No aircraft records available.")
+
         elif len(airport_options) < 2:
+
             st.warning("At least two airports are required.")
+
         else:
-            with st.form("add_flight_form", clear_on_submit=True):
+
+            with st.form(
+                "add_flight_form",
+                clear_on_submit=True,
+            ):
+
                 c1, c2 = st.columns(2)
 
                 with c1:
-                    flight_num = st.text_input("Flight Number *", placeholder="e.g. AI102")
-                    aircraft_name = st.selectbox("Aircraft *", list(aircraft_options))
-                    dep_airport = st.selectbox("Departure Airport *", list(airport_options))
+
+                    flight_num = st.text_input(
+                        "Flight Number *",
+                        placeholder="e.g. AI102",
+                    )
+
+                    aircraft_name = st.selectbox(
+                        "Aircraft *",
+                        list(aircraft_options),
+                    )
+
+                    dep_airport = st.selectbox(
+                        "Departure Airport *",
+                        list(airport_options),
+                    )
+
                     arr_airport = st.selectbox(
                         "Arrival Airport *",
                         list(airport_options),
@@ -641,19 +807,32 @@ elif menu_choice == "Flights":
                     )
 
                 with c2:
+
                     now = datetime.datetime.now()
+
                     dep_dt = st.datetime_input(
                         "Departure Datetime *",
                         now + datetime.timedelta(days=1),
                     )
+
                     arr_dt = st.datetime_input(
                         "Arrival Datetime *",
-                        now + datetime.timedelta(days=1, hours=2),
+                        now + datetime.timedelta(
+                            days=1,
+                            hours=2,
+                        ),
                     )
+
                     status = st.selectbox(
                         "Flight Status",
-                        ["Scheduled", "Delayed", "Departed", "Cancelled"],
+                        [
+                            "Scheduled",
+                            "Delayed",
+                            "Departed",
+                            "Cancelled",
+                        ],
                     )
+
                     base_fare = st.number_input(
                         "Base Fare (₹) *",
                         min_value=0.0,
@@ -661,16 +840,33 @@ elif menu_choice == "Flights":
                         step=100.0,
                     )
 
-                submitted = st.form_submit_button("Schedule Flight")
+                submitted = st.form_submit_button(
+                    "Schedule Flight"
+                )
 
                 if submitted:
+
                     if not flight_num.strip():
-                        st.error("Flight Number is required.")
+
+                        st.error(
+                            "Flight Number is required."
+                        )
+
                     elif dep_airport == arr_airport:
-                        st.error("Departure and arrival airports must be different.")
+
+                        st.error(
+                            "Departure and arrival airports "
+                            "must be different."
+                        )
+
                     elif arr_dt <= dep_dt:
-                        st.error("Arrival time must be after departure time.")
+
+                        st.error(
+                            "Arrival time must be after departure time."
+                        )
+
                     else:
+
                         result = run_service(
                             flight_service.add_flight,
                             flight_num.strip(),
@@ -684,12 +880,21 @@ elif menu_choice == "Flights":
                             default=False,
                             error_message="Failed to schedule flight",
                         )
+
                         if result:
-                            refresh_success(f"Flight {flight_num} scheduled successfully!")
+
+                            refresh_success(
+                                f"Flight {flight_num} scheduled successfully!"
+                            )
+
                         else:
-                            st.error("Flight could not be added.")
+
+                            st.error(
+                                "Flight could not be added."
+                            )
 
     with tab_edit:
+
         st.write("#### Update Existing Flight")
 
         flights = run_service(
@@ -699,38 +904,66 @@ elif menu_choice == "Flights":
         )
 
         if not flights:
+
             st.info("No flights available to update.")
+
         else:
+
             options = {
                 f"{f['flight_id']} - {f['flight_number']} "
                 f"({f['departure_code']} -> {f['arrival_code']})": f
                 for f in flights
             }
 
-            selected = st.selectbox("Select Flight to Update", list(options))
+            selected = st.selectbox(
+                "Select Flight to Update",
+                list(options),
+            )
+
             flight = options[selected]
 
-            status_options = ["Scheduled", "Delayed", "Departed", "Cancelled"]
-            current_status = flight.get("status", "Scheduled")
+            status_options = [
+                "Scheduled",
+                "Delayed",
+                "Departed",
+                "Cancelled",
+            ]
+
+            current_status = flight.get(
+                "status",
+                "Scheduled",
+            )
+
             if current_status not in status_options:
                 current_status = "Scheduled"
 
             with st.form("edit_flight_form"):
-                number = st.text_input("Flight Number", value=flight["flight_number"])
+
+                number = st.text_input(
+                    "Flight Number",
+                    value=flight["flight_number"],
+                )
+
                 new_status = st.selectbox(
                     "Status",
                     status_options,
-                    index=status_options.index(current_status),
+                    index=status_options.index(
+                        current_status
+                    ),
                 )
+
                 fare = st.number_input(
                     "Base Fare (₹)",
                     min_value=0.0,
                     value=float(flight["base_fare"]),
                 )
 
-                submitted = st.form_submit_button("Save Changes")
+                submitted = st.form_submit_button(
+                    "Save Changes"
+                )
 
                 if submitted:
+
                     result = run_service(
                         flight_service.update_flight,
                         flight["flight_id"],
@@ -747,11 +980,19 @@ elif menu_choice == "Flights":
                     )
 
                     if result:
-                        refresh_success("Flight updated successfully!")
+
+                        refresh_success(
+                            "Flight updated successfully!"
+                        )
+
                     else:
-                        st.error("Flight could not be updated.")
+
+                        st.error(
+                            "Flight could not be updated."
+                        )
 
     with tab_delete:
+
         st.write("#### Delete Flight")
 
         flights = run_service(
@@ -761,11 +1002,15 @@ elif menu_choice == "Flights":
         )
 
         if not flights:
+
             st.info("No flights available to delete.")
+
         else:
+
             options = {
                 f"{f['flight_id']} - {f['flight_number']} "
-                f"({f['departure_code']} -> {f['arrival_code']})": f["flight_id"]
+                f"({f['departure_code']} -> {f['arrival_code']})":
+                    f["flight_id"]
                 for f in flights
             }
 
@@ -775,16 +1020,26 @@ elif menu_choice == "Flights":
                 key="delete_flight_select",
             )
 
-            if st.button("Delete Flight", type="primary"):
+            if st.button(
+                "Delete Flight",
+                type="primary",
+            ):
+
                 result = run_service(
                     flight_service.delete_flight,
                     options[selected],
                     default=False,
                     error_message="Cannot delete flight",
                 )
+
                 if result:
-                    refresh_success("Flight record removed successfully!")
+
+                    refresh_success(
+                        "Flight record removed successfully!"
+                    )
+
                 else:
+
                     st.error(
                         "Flight could not be deleted. "
                         "It may be referenced by reservations."
@@ -796,10 +1051,16 @@ elif menu_choice == "Flights":
 # ============================================================
 
 elif menu_choice == "Reservations":
-    st.subheader("🎫 Reservation & Booking Management")
+
+    st.subheader("Reservation & Booking Management")
 
     tab_view, tab_add, tab_edit, tab_delete = st.tabs(
-        ["📋 View Reservations", "➕ Create Reservation", "✏️ Update Status", "🗑️ Cancel Booking"]
+        [
+            "View Reservations",
+            "Create Reservation",
+            "Update Status",
+            "Cancel Booking",
+        ]
     )
 
     passengers = run_service(
@@ -807,16 +1068,23 @@ elif menu_choice == "Reservations":
         default=[],
         error_message="Unable to load passengers",
     )
+
     flights = run_service(
         flight_service.get_all_flights,
         default=[],
         error_message="Unable to load flights",
     )
 
-    passenger_options = make_passenger_options(passengers)
-    flight_options = make_flight_options(flights)
+    passenger_options = make_passenger_options(
+        passengers
+    )
+
+    flight_options = make_flight_options(
+        flights
+    )
 
     with tab_view:
+
         reservations = run_service(
             reservation_service.get_all_reservations,
             default=[],
@@ -847,39 +1115,66 @@ elif menu_choice == "Reservations":
         )
 
     with tab_add:
+
         st.write("#### New Passenger Booking")
 
         if not passenger_options:
-            st.warning("No passengers available. Please add a passenger first.")
+
+            st.warning(
+                "No passengers available. "
+                "Please add a passenger first."
+            )
+
         elif not flight_options:
-            st.warning("No flights available. Please schedule a flight first.")
+
+            st.warning(
+                "No flights available. "
+                "Please schedule a flight first."
+            )
+
         else:
-            with st.form("create_reservation_form", clear_on_submit=True):
+
+            with st.form(
+                "create_reservation_form",
+                clear_on_submit=True,
+            ):
+
                 c1, c2 = st.columns(2)
 
                 with c1:
+
                     selected_passenger = st.selectbox(
                         "Select Passenger *",
                         list(passenger_options),
                     )
+
                     selected_flight = st.selectbox(
                         "Select Flight *",
                         list(flight_options),
                     )
 
                 with c2:
+
                     booking_date = st.date_input(
                         "Booking Date",
                         datetime.date.today(),
                     )
+
                     reservation_status = st.selectbox(
                         "Reservation Status",
-                        ["Confirmed", "Pending", "Cancelled"],
+                        [
+                            "Confirmed",
+                            "Pending",
+                            "Cancelled",
+                        ],
                     )
 
-                submitted = st.form_submit_button("Create Reservation")
+                submitted = st.form_submit_button(
+                    "Create Reservation"
+                )
 
                 if submitted:
+
                     result = run_service(
                         reservation_service.add_reservation,
                         passenger_options[selected_passenger],
@@ -891,11 +1186,19 @@ elif menu_choice == "Reservations":
                     )
 
                     if result:
-                        refresh_success("Reservation created successfully!")
+
+                        refresh_success(
+                            "Reservation created successfully!"
+                        )
+
                     else:
-                        st.error("Reservation could not be created.")
+
+                        st.error(
+                            "Reservation could not be created."
+                        )
 
     with tab_edit:
+
         st.write("#### Update Reservation Status")
 
         reservations = run_service(
@@ -905,19 +1208,37 @@ elif menu_choice == "Reservations":
         )
 
         if not reservations:
+
             st.info("No reservations available.")
+
         else:
+
             options = {
-                f"Res #{r['reservation_id']} - {r['passenger_name']} "
-                f"({r['flight_number']}) [{r['reservation_status']}]": r
+                f"Res #{r['reservation_id']} - "
+                f"{r['passenger_name']} "
+                f"({r['flight_number']}) "
+                f"[{r['reservation_status']}]": r
                 for r in reservations
             }
 
-            selected = st.selectbox("Select Reservation", list(options))
+            selected = st.selectbox(
+                "Select Reservation",
+                list(options),
+            )
+
             reservation = options[selected]
 
-            statuses = ["Confirmed", "Pending", "Cancelled"]
-            current = reservation.get("reservation_status", "Pending")
+            statuses = [
+                "Confirmed",
+                "Pending",
+                "Cancelled",
+            ]
+
+            current = reservation.get(
+                "reservation_status",
+                "Pending",
+            )
+
             if current not in statuses:
                 current = "Pending"
 
@@ -928,6 +1249,7 @@ elif menu_choice == "Reservations":
             )
 
             if st.button("Update Status"):
+
                 result = run_service(
                     reservation_service.update_reservation_status,
                     reservation["reservation_id"],
@@ -935,12 +1257,21 @@ elif menu_choice == "Reservations":
                     default=False,
                     error_message="Failed to update status",
                 )
+
                 if result:
-                    refresh_success("Reservation status updated!")
+
+                    refresh_success(
+                        "Reservation status updated!"
+                    )
+
                 else:
-                    st.error("Reservation could not be updated.")
+
+                    st.error(
+                        "Reservation could not be updated."
+                    )
 
     with tab_delete:
+
         st.write("#### Cancel / Remove Reservation")
 
         reservations = run_service(
@@ -950,11 +1281,16 @@ elif menu_choice == "Reservations":
         )
 
         if not reservations:
+
             st.info("No reservations available.")
+
         else:
+
             options = {
-                f"Res #{r['reservation_id']} - {r['passenger_name']} "
-                f"({r['flight_number']})": r["reservation_id"]
+                f"Res #{r['reservation_id']} - "
+                f"{r['passenger_name']} "
+                f"({r['flight_number']})":
+                    r["reservation_id"]
                 for r in reservations
             }
 
@@ -964,17 +1300,29 @@ elif menu_choice == "Reservations":
                 key="delete_reservation_select",
             )
 
-            if st.button("Delete Reservation", type="primary"):
+            if st.button(
+                "Delete Reservation",
+                type="primary",
+            ):
+
                 result = run_service(
                     reservation_service.delete_reservation,
                     options[selected],
                     default=False,
                     error_message="Error deleting reservation",
                 )
+
                 if result:
-                    refresh_success("Reservation cancelled and removed!")
+
+                    refresh_success(
+                        "Reservation cancelled and removed!"
+                    )
+
                 else:
-                    st.error("Reservation could not be deleted.")
+
+                    st.error(
+                        "Reservation could not be deleted."
+                    )
 
 
 # ============================================================
@@ -982,13 +1330,19 @@ elif menu_choice == "Reservations":
 # ============================================================
 
 elif menu_choice == "Payments":
-    st.subheader("💳 Financial Transactions & Payments")
+
+    st.subheader("Financial Transactions & Payments")
 
     tab_view, tab_add, tab_delete = st.tabs(
-        ["📋 View All Payments", "➕ Record Payment", "🗑️ Delete Payment"]
+        [
+            "View All Payments",
+            "Record Payment",
+            "Delete Payment",
+        ]
     )
 
     with tab_view:
+
         payments = run_service(
             payment_service.get_all_payments,
             default=[],
@@ -1011,6 +1365,7 @@ elif menu_choice == "Payments":
         )
 
     with tab_add:
+
         st.write("#### Process Reservation Payment")
 
         unpaid_reservations = run_service(
@@ -1020,11 +1375,19 @@ elif menu_choice == "Payments":
         )
 
         if not unpaid_reservations:
-            st.info("All existing reservations currently have payment records.")
+
+            st.info(
+                "All existing reservations currently have "
+                "payment records."
+            )
+
         else:
+
             options = {
-                f"Res #{r['reservation_id']} - {r['passenger_name']} "
-                f"({r['flight_number']}) - Fare: ₹{r['base_fare']}": r
+                f"Res #{r['reservation_id']} - "
+                f"{r['passenger_name']} "
+                f"({r['flight_number']}) - "
+                f"Fare: ₹{r['base_fare']}": r
                 for r in unpaid_reservations
             }
 
@@ -1032,36 +1395,59 @@ elif menu_choice == "Payments":
                 "Select Reservation to Pay *",
                 list(options),
             )
+
             reservation = options[selected]
 
-            with st.form("add_payment_form", clear_on_submit=True):
+            with st.form(
+                "add_payment_form",
+                clear_on_submit=True,
+            ):
+
                 c1, c2 = st.columns(2)
 
                 with c1:
+
                     amount = st.number_input(
                         "Payment Amount (₹) *",
                         min_value=0.0,
-                        value=float(reservation["base_fare"]),
+                        value=float(
+                            reservation["base_fare"]
+                        ),
                         step=100.0,
                     )
+
                     method = st.selectbox(
                         "Payment Method *",
-                        ["UPI", "Card", "Net Banking", "Cash"],
+                        [
+                            "UPI",
+                            "Card",
+                            "Net Banking",
+                            "Cash",
+                        ],
                     )
 
                 with c2:
+
                     status = st.selectbox(
                         "Payment Status *",
-                        ["Paid", "Pending", "Failed"],
+                        [
+                            "Paid",
+                            "Pending",
+                            "Failed",
+                        ],
                     )
+
                     payment_date = st.date_input(
                         "Payment Date",
                         datetime.date.today(),
                     )
 
-                submitted = st.form_submit_button("Record Payment")
+                submitted = st.form_submit_button(
+                    "Record Payment"
+                )
 
                 if submitted:
+
                     result = run_service(
                         payment_service.add_payment,
                         reservation["reservation_id"],
@@ -1074,13 +1460,20 @@ elif menu_choice == "Payments":
                     )
 
                     if result:
+
                         refresh_success(
-                            f"Payment of ₹{amount:,.2f} recorded successfully!"
+                            f"Payment of ₹{amount:,.2f} "
+                            "recorded successfully!"
                         )
+
                     else:
-                        st.error("Payment could not be recorded.")
+
+                        st.error(
+                            "Payment could not be recorded."
+                        )
 
     with tab_delete:
+
         st.write("#### Remove Payment Record")
 
         payments = run_service(
@@ -1090,11 +1483,17 @@ elif menu_choice == "Payments":
         )
 
         if not payments:
+
             st.info("No payment records available.")
+
         else:
+
             options = {
-                f"Pay #{p['payment_id']} - Res #{p['reservation_id']} "
-                f"({p['passenger_name']}) - ₹{p['amount']}": p["payment_id"]
+                f"Pay #{p['payment_id']} - "
+                f"Res #{p['reservation_id']} "
+                f"({p['passenger_name']}) - "
+                f"₹{p['amount']}":
+                    p["payment_id"]
                 for p in payments
             }
 
@@ -1104,7 +1503,11 @@ elif menu_choice == "Payments":
                 key="delete_payment_select",
             )
 
-            if st.button("Delete Payment", type="primary"):
+            if st.button(
+                "Delete Payment",
+                type="primary",
+            ):
+
                 result = run_service(
                     payment_service.delete_payment,
                     options[selected],
@@ -1113,9 +1516,16 @@ elif menu_choice == "Payments":
                 )
 
                 if result:
-                    refresh_success("Payment record deleted!")
+
+                    refresh_success(
+                        "Payment record deleted!"
+                    )
+
                 else:
-                    st.error("Payment could not be deleted.")
+
+                    st.error(
+                        "Payment could not be deleted."
+                    )
 
 
 # ============================================================
@@ -1123,10 +1533,15 @@ elif menu_choice == "Payments":
 # ============================================================
 
 elif menu_choice == "SQL Verification Lab":
-    st.subheader("🔍 Live Database Verification Lab")
-    st.caption("Execute project SQL queries against the connected database.")
+
+    st.subheader("Live Database Verification Lab")
+
+    st.caption(
+        "Execute project SQL queries against the connected database."
+    )
 
     preset_queries = {
+
         "Query 1: All Passengers":
             "SELECT * FROM Passenger;",
 
@@ -1214,24 +1629,46 @@ elif menu_choice == "SQL Verification Lab":
         height=220,
     )
 
-    if st.button("Execute Query ▶️", type="primary"):
+    if st.button(
+        "Execute Query",
+        type="primary",
+    ):
+
         sql = sql.strip()
 
         if not sql:
-            st.warning("Please enter an SQL query.")
+
+            st.warning(
+                "Please enter an SQL query."
+            )
+
         else:
+
             try:
+
                 results = fetch_all(sql)
 
                 if results:
-                    st.write(f"### Query Output ({len(results)} rows)")
+
+                    st.write(
+                        f"### Query Output ({len(results)} rows)"
+                    )
+
                     st.dataframe(
                         pd.DataFrame(results),
                         use_container_width=True,
                         hide_index=True,
                     )
+
                 else:
-                    st.success("Query executed successfully. 0 rows returned.")
+
+                    st.success(
+                        "Query executed successfully. "
+                        "0 rows returned."
+                    )
 
             except Exception as exc:
-                st.error(f"SQL Execution Error: {exc}")
+
+                st.error(
+                    f"SQL Execution Error: {exc}"
+                )
